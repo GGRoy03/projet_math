@@ -1,4 +1,5 @@
 Simple simulation 3D pour Windows SEULEMENT réalisé dans le cadre du cours de mathématique pour le collège LaSalle.
+A noter que seulement la version debug du programme est présente.
 
 Pour faire fontionner le programme, la seule dependence est le SDK de windows 10. La maniere la plus simple de l'installer
 est de modifier l'installation de Visual Studio, aller chercher "Desktop development with C++" et à la droite dans "Installation details"
