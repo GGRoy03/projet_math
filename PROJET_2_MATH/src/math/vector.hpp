@@ -95,7 +95,7 @@ inline static f32 Dot(vec_3 vl, vec_3 vr)
 {
 	f32 Result = 0;
 	Result += vl.x * vr.x;
-	Result += vl.y * vr.x;
+	Result += vl.y * vr.y;
 	Result += vl.z * vr.z;
 	return Result;
 }
@@ -181,8 +181,10 @@ static vec_3 ProjectVectorOnVector(vec_3 pv, vec_3 tv)
 
 static vec_3 ProjectVectorOnPlane(vec_3 v, vec_3 pn)
 {
-	vec_3 ProjectionOnNormal = pn * Dot(v, pn);
+	vec_3 n                  = Normalize(pn);
+	vec_3 ProjectionOnNormal = n * Dot(v, n);
 	vec_3 ProjectionOnPlane  = v - ProjectionOnNormal;
+
 	return ProjectionOnPlane;
 }
 
