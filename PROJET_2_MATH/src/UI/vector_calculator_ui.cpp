@@ -77,12 +77,12 @@ static calculator_info_ui BuildCalculatorInfoUI(OPERATION_TYPE Type)
     }
 
     case OPERATION_VECTOR_PROJECTION:
-        memcpy(CalculatorInfo.Symbol, "Proj", 7);
+        memcpy(CalculatorInfo.Symbol, "Proj", 5);
         memcpy(CalculatorInfo.ButtonName, "Projection", 11);
         break;
 
     case OPERATION_PLANE_PROJECTION:
-        memcpy(CalculatorInfo.Symbol, "Proj", 7);
+        memcpy(CalculatorInfo.Symbol, "Proj", 5);
         memcpy(CalculatorInfo.ButtonName, "Projection", 11);
         break;
 
@@ -224,35 +224,50 @@ static void RenderCalculatorUI(vector_calculator_ui* VectorCalculator, vectors_s
     
     if (ValidLeftVector && ValidRightVector)
     {
-        vector_ui LeftVectorUI  = *VectorCalculator->LeftVector;
-        vector_ui RightVectorUI = *VectorCalculator->RightVector;
-        vec_3     Destination   = vec_3();
-        vec_3     Origin        = vec_3();
+        simulation_vector* LeftVector = VectorCalculator->LeftVector->Vector;
+        simulation_vector* RightVector = VectorCalculator->RightVector->Vector;
+        vec_3 Destination = vec_3();
+        vec_3 Origin = vec_3();
 
         switch (CalculatorInfo->OpType)
         {
-
         case OPERATION_ADDITION:
-            Origin      = LeftVectorUI.Vector->Origin;
-            Destination = Origin + (LeftVectorUI.Vector->Direction + RightVectorUI.Vector->Direction);
+        {
+            Origin = LeftVector->Origin;
+
+            vec_3 ResultVector = (LeftVector->Direction - LeftVector->Origin) + (RightVector->Direction - RightVector->Origin);
+            Destination = Origin + ResultVector;
             break;
+        }
+            
 
         case OPERATION_SUBTRACTION:
         {
-            Origin      = RightVectorUI.Vector->Direction;
-            Destination = Origin + (LeftVectorUI.Vector->Direction - RightVectorUI.Vector->Direction);
+            Origin = RightVector->Direction;
+
+            vec_3 ResultVector = (LeftVector->Direction - LeftVector->Origin) - (RightVector->Direction - RightVector->Origin);
+            Destination = Origin + ResultVector;
             break;
         }
 
         case OPERATION_VECTOR_PRODUCT:
-            Origin      = LeftVectorUI.Vector->Origin;
-            Destination = Origin + VectorProduct(LeftVectorUI.Vector->Direction, RightVectorUI.Vector->Direction);
+        {
+            Origin = LeftVector->Origin;
+
+            vec_3 LeftDir = LeftVector->Direction - LeftVector->Origin;
+            vec_3 RightDir = RightVector->Direction - RightVector->Origin;
+            Destination = Origin + VectorProduct(LeftDir, RightDir);
             break;
+        }
 
         case OPERATION_VECTOR_PROJECTION:
-            Origin      = RightVectorUI.Vector->Origin;
-            Destination = ProjectVectorOnVector(LeftVectorUI.Vector->Direction, RightVectorUI.Vector->Direction);
+        {
+            Origin = LeftVector->Origin;
+            vec_3 VectorToProject = RightVector->Direction - RightVector->Origin;
+            vec_3 OntoVector = LeftVector->Direction - LeftVector->Origin;
+            Destination = Origin + ProjectVectorOnVector(VectorToProject, OntoVector);
             break;
+        }
         }
 
         CalculatorInfo->OutputOrigin    = Origin;
@@ -263,11 +278,13 @@ static void RenderCalculatorUI(vector_calculator_ui* VectorCalculator, vectors_s
 
     if (ValidLeftVector && ValidScalar)
     {
-        vector_ui LeftVectorUI          = *VectorCalculator->LeftVector;
-        CalculatorInfo->OutputDirection = ScaleVector(LeftVectorUI.Vector->Direction, VectorCalculator->Scalar);
-        CalculatorInfo->OutputOrigin    = LeftVectorUI.Vector->Origin;;
+        simulation_vector* Vector = VectorCalculator->LeftVector->Vector;
 
-        
+        vec_3 WorldVector = Vector->Direction - Vector->Origin;
+
+        CalculatorInfo->OutputOrigin    = Vector->Origin;
+        CalculatorInfo->OutputDirection = Vector->Origin + ScaleVector(WorldVector, VectorCalculator->Scalar);
+    
         ValidOutput = true;
     }
 
@@ -275,8 +292,11 @@ static void RenderCalculatorUI(vector_calculator_ui* VectorCalculator, vectors_s
     {
         simulation_vector* Vector = VectorCalculator->LeftVector->Vector;
 
+        vec_3 WorldVector = Vector->Direction - Vector->Origin;
+        vec_3 Projected   = ProjectVectorOnPlane(WorldVector, VectorCalculator->PlaneNormal);
+
         CalculatorInfo->OutputOrigin = Vector->Origin;
-        CalculatorInfo->OutputDirection = ProjectVectorOnPlane(Vector->Direction, VectorCalculator->PlaneNormal);
+        CalculatorInfo->OutputDirection = Vector->Origin + Projected;
     }
     
 
@@ -327,7 +347,7 @@ static void RenderCalculatorUI(vector_calculator_ui* VectorCalculator, vectors_s
 
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
-        ImGui::Text("Destination");
+        ImGui::Text("Direciton:");
         ImGui::TableSetColumnIndex(1);
         ImGui::Text("(%f,%f,%f)", CalculatorInfo->OutputDirection.x, CalculatorInfo->OutputDirection.y, CalculatorInfo->OutputDirection.z);
 
