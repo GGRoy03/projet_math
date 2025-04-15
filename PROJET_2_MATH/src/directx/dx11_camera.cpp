@@ -34,6 +34,7 @@ struct camera_frame_data
 	vec_3 Movement;
 	f32   ZoomDelta;
 	f32   YawDelta;
+	f32   PitchDelta;
 };
 
 
@@ -79,7 +80,6 @@ static void InitializeCamera(f32 AspectRatio, f32 FovDegree, vec_3 CameraPositio
 	HRESULT Status = Backend.Device->CreateBuffer(&CameraBufferDesc, NULL, &Camera.Buffer);
 	if (FAILED(Status))
 	{
-		// TODO: Throw an error.
 		return;
 	}
 
@@ -89,7 +89,6 @@ static void InitializeCamera(f32 AspectRatio, f32 FovDegree, vec_3 CameraPositio
 	mat_4 View       = FocusMatrix(Up, CameraPosition, FocusPoint);
 	mat_4 Projection = ProjectionMatrix(FovDegree, AspectRatio, 0.1f, 100.0f);
 
-	// TODO: Use the function
 	D3D11_MAPPED_SUBRESOURCE MappedData;
 	Status = Backend.ImmediateContext->Map(Camera.Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedData);
 	if (Status == S_OK)
@@ -152,7 +151,8 @@ static camera_frame_data BuildCameraFrameData()
 
 	if (Inputs.RightClickHeld)
 	{
-		Frame.YawDelta = MouseXOffset * RotationSpeed;
+		Frame.YawDelta   = MouseXOffset * RotationSpeed;
+		Frame.PitchDelta = MouseYOffset * RotationSpeed;
 	}
 
 	Frame.ZoomDelta = ScrollDelta * ZoomStrength;
@@ -165,15 +165,27 @@ static bool UpdateProjectionCamera()
 	camera_frame_data Frame = BuildCameraFrameData();
 	bool ShouldUpdate       = false;
 
-	if (Frame.YawDelta != 0)
+	if (Frame.YawDelta != 0 || Frame.PitchDelta != 0)
 	{
-		Camera.Yaw      += Frame.YawDelta;
+		Camera.Yaw   += Frame.YawDelta;
+		Camera.Pitch += Frame.PitchDelta;
+
+		if (Camera.Pitch > 1)
+		{
+			Camera.Pitch = 1;
+		}
+		else if (Camera.Pitch < -1)
+		{
+			Camera.Pitch = -1;
+		}
+
 		Camera.Direction = ComputeCameraDirection(Camera.Yaw, Camera.Pitch);
 		Camera.Right     = ComputeCameraRight(Camera.Direction, vec_3(0.0f, 1.0f, 0.0f));
 		Camera.Up        = ComputeCameraUp(Camera.Right, Camera.Direction);
 
 		ShouldUpdate     = true;
 	}
+
 
 	if (!IsZeroVector(Frame.Movement))
 	{
