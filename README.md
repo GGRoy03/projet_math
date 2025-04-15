@@ -9,8 +9,8 @@ Si vous voulez l'éxécuter à partir d'un autre éditeur de texte ou IDE, veuil
 Pour bouger dans l'espace, on peut soit utiliser les touches w, a, s, d ou utiliser le clic gauche et droit de la souris.
 Maintenir clic droit pour la rotation de la vue et maintenir le clic gauche pour bouger dans l'espace.
 
-Si la fenetre du GUI est trop grand vous pouvez la fermer avec la petite flèche en haut à gauche ce celle-ci.
+Si la fenetre du GUI est trop grand vous pouvez la fermer avec la petite flèche en haut à gauche ce celle-ci
+ou la modifier comme une fenêtre Windows.
 
 Veuillez lire le document technique pour plus d'informations.
-
-Une vidéo de démonstration est présente dans les fichiers de cette repository à la source.
+Une vidéo de démonstration est présente dans les fichiers à la source.
